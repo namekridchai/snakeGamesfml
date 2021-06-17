@@ -37,7 +37,7 @@ Texture t2 = myTexture("green.png");
 Texture t3 = myTexture("red.png");
 Vector2u wsize =   window.getSize();
 Vector2u isize = t1.getSize();
-Sprite table[(wsize.y / isize.y)][(wsize.x/isize.x)];
+Sprite table[(wsize.y / isize.y)+1][(wsize.x/isize.x)+1];
 Snake head;
 head.dx = isize.x;  head.dy = 0;    head.direction = Right;
 
@@ -62,10 +62,10 @@ Vector2f v;
 
 
 
-for(int i = 0;i<(wsize.y/isize.y);i++){
+for(int i = 0;i<(wsize.y/isize.y)+1;i++){
         drx = 0;
 
-        for(int j = 0;j<(wsize.x/isize.x);j++){
+        for(int j = 0;j<(wsize.x/isize.x)+1;j++){
           table[i][j].setTexture(t1);
           table[i][j].setPosition(Vector2f(drx,dry));
           drx+=isize.x;
@@ -74,8 +74,12 @@ for(int i = 0;i<(wsize.y/isize.y);i++){
    }
 
 Vector2f isizef(isize);
-Behavior behavior[100];
-
+std::vector <Behavior> behavior;
+Behavior bhead;
+bhead.x = head.dx;
+bhead.y = head.dy;
+bhead.direction = head.direction;
+behavior.push_back(bhead);
 while(window.isOpen()){
 
     for(int i = 0;i<snakeList.size();i++)
@@ -136,9 +140,9 @@ while(window.isOpen()){
     }
 
     window.clear();
-   for(int i = 0;i<(wsize.y/isize.y);i++){
+   for(int i = 0;i<(wsize.y/isize.y)+1;i++){
 
-        for(int j = 0;j<(wsize.x/isize.x);j++){
+        for(int j = 0;j<(wsize.x/isize.x)+1;j++){
 
               window.draw(table[i][j]);
 
@@ -160,6 +164,7 @@ while(window.isOpen()){
         posFoody  = (rand() % (wsize.y/isize.y))  * isize.y;
         food.setPosition(Vector2f(posFoodx,posFoody));
         Snake tail;
+        Behavior btail;
         tail.s.setTexture(t2);
         tail.dx = snakeList[snakeList.size()-1].dx;
         tail.dy = snakeList[snakeList.size()-1].dx;
@@ -187,7 +192,28 @@ while(window.isOpen()){
 
         }
         snakeList.push_back(tail);
+        btail.direction = tail.direction;
+        btail.x = tail.dx;
+        btail.y = tail.dy;
+        behavior.push_back(btail);
     }
+
+            int note = 100;
+            for(int i =1;i<snakeList.size();i++){
+                if((snakeList[0].s.getPosition().x==snakeList[i].s.getPosition().x) && (snakeList[0].s.getPosition().y==snakeList[i].s.getPosition().y))
+                {
+                    note = i;
+                    break;
+                }
+            }
+            int notes = snakeList.size();
+            for(int i = note;i<notes;i++)
+            {
+                snakeList.erase(snakeList.begin()+note);
+                behavior.erase(behavior.begin()+note);
+            }
+
+            note = 100;
 
              for(int i =1;i<snakeList.size();i++)
             {
@@ -195,6 +221,20 @@ while(window.isOpen()){
                     snakeList[i].dy = behavior[i-1].y;
                     snakeList[i].direction = behavior[i-1].direction;
             }
+
+            for(int i =0;i<snakeList.size();i++){
+                if(snakeList[i].s.getPosition().x < 0)
+                    snakeList[i].s.setPosition(wsize.x,snakeList[i].s.getPosition().y) ;
+                else if(snakeList[i].s.getPosition().x > wsize.x)
+                    snakeList[i].s.setPosition(0,snakeList[i].s.getPosition().y);
+                else if(snakeList[i].s.getPosition().y < 0)
+                    snakeList[i].s.setPosition(snakeList[i].s.getPosition().x,wsize.y);
+                else if(snakeList[i].s.getPosition().y > wsize.y)
+                    snakeList[i].s.setPosition(snakeList[i].s.getPosition().x,0);
+
+            }
+
+
     }
 
     v1 = snakeList[0].s.getPosition();
